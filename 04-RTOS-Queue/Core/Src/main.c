@@ -56,6 +56,13 @@ const osThreadAttr_t Task_RX_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityBelowNormal,
 };
+/* Definitions for Task2_Tx */
+osThreadId_t Task2_TxHandle;
+const osThreadAttr_t Task2_Tx_attributes = {
+  .name = "Task2_Tx",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
 /* Definitions for Queue01 */
 osMessageQueueId_t Queue01Handle;
 const osMessageQueueAttr_t Queue01_attributes = {
@@ -70,6 +77,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 void Sender(void *argument);
 void Reciver(void *argument);
+void Sender2(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -150,6 +158,9 @@ int main(void)
 
   /* creation of Task_RX */
   Task_RXHandle = osThreadNew(Reciver, NULL, &Task_RX_attributes);
+
+  /* creation of Task2_Tx */
+  Task2_TxHandle = osThreadNew(Sender2, NULL, &Task2_Tx_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -257,7 +268,7 @@ void Sender(void *argument)
 	uint16_t value = 100;
   for(;;)
   {
-	  printf("Sender Task is Active\r\n");
+	  printf("Sending Task 1\r\n");
 	  osMessageQueuePut(Queue01Handle, &value, 0, 200);
 	  value = value+10;
     osDelay(500);
@@ -279,12 +290,34 @@ void Reciver(void *argument)
 	uint16_t rx_data;
   for(;;)
   {
-	  printf("Receiver is Active \r\n");
+	  printf("Ready to Receive\r\n");
 	  osMessageQueueGet(Queue01Handle, &rx_data, NULL, 2000);
 	  printf("Data Accessed : %d\r\n", rx_data);
-      osDelay(1000);
+      osDelay(3000);
   }
   /* USER CODE END Reciver */
+}
+
+/* USER CODE BEGIN Header_Sender2 */
+/**
+* @brief Function implementing the Task2_Tx thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Sender2 */
+void Sender2(void *argument)
+{
+  /* USER CODE BEGIN Sender2 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  uint16_t Tx_2;
+	  printf("Sending Task 2\r\n");
+	  osMessageQueuePut(Queue01Handle, &Tx_2, 50, 250);
+	  Tx_2 = Tx_2*2;
+    osDelay(1000);
+  }
+  /* USER CODE END Sender2 */
 }
 
 /**
